@@ -330,10 +330,7 @@ if uploaded_file is None:
     )
     st.stop()
 
-
-# =========================================================
 # LOAD JSON
-# =========================================================
 
 try:
     raw_data = json.load(uploaded_file)
@@ -358,10 +355,7 @@ except Exception as e:
     st.error(f"Unable to read JSON file: {e}")
     st.stop()
 
-
-# =========================================================
 # VALIDATE REQUIRED COLUMNS
-# =========================================================
 
 required_columns = ["rating", "categories", "message", "contactOptIn", "timestamp"]
 missing_columns = [c for c in required_columns if c not in df.columns]
@@ -370,10 +364,7 @@ if missing_columns:
     st.error("The uploaded JSON is missing these fields: " + ", ".join(missing_columns))
     st.stop()
 
-
-# =========================================================
 # DATA CLEANING
-# =========================================================
 
 df["rating"] = pd.to_numeric(df["rating"], errors="coerce")
 df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
@@ -395,11 +386,8 @@ df["categories"] = df["categories"].apply(
 
 df["rating"] = df["rating"].round().astype(int).clip(1, 5)
 
-
-# =========================================================
 # SENTIMENT ANALYSIS (VADER) — cached so it only runs once
 # per unique set of messages, not on every filter change.
-# =========================================================
 
 @st.cache_data(show_spinner="Analysing feedback sentiment...")
 def score_sentiment(messages: tuple) -> list:
@@ -418,12 +406,9 @@ def label_sentiment(compound: float) -> str:
 df["sentiment_score"] = score_sentiment(tuple(df["message"].tolist()))
 df["sentiment"] = df["sentiment_score"].apply(label_sentiment)
 
-
-# =========================================================
 # NPS-STYLE SEGMENTATION
 # 5-star scale mapped to promoter/passive/detractor bands:
 # 5 = Promoter, 4 = Passive, 1-3 = Detractor.
-# =========================================================
 
 def nps_segment(rating: int) -> str:
     if rating == 5:
@@ -436,9 +421,8 @@ def nps_segment(rating: int) -> str:
 df["nps_segment"] = df["rating"].apply(nps_segment)
 
 
-# =========================================================
 # KEYWORD EXTRACTION FROM MESSAGES
-# ============================================================
+
 
 STOPWORDS = set("""
 a about above after again against all am an and any are aren't as at be
@@ -468,11 +452,8 @@ def extract_keywords(messages: pd.Series, top_n: int = 15) -> pd.DataFrame:
     top = counter.most_common(top_n)
     return pd.DataFrame(top, columns=["Keyword", "Mentions"])
 
-
-# =========================================================
 # FILTERS — MAIN PAGE, ALWAYS VISIBLE
 # (moved out of the sidebar so they can't be missed/collapsed)
-# =========================================================
 
 rating_options = sorted(df["rating"].unique())
 all_categories = sorted(set(c for cats in df["categories"] for c in cats))
@@ -530,10 +511,7 @@ with st.expander("🔎  Filters", expanded=True):
             st.session_state.pop(k, None)
         st.rerun()
 
-
-# =========================================================
 # APPLY FILTERS
-# =========================================================
 
 filtered_df = df.copy()
 
@@ -563,10 +541,7 @@ if filtered_df.empty:
     st.warning("No feedback matches the selected filters. Try widening your filters above.")
     st.stop()
 
-
-# =========================================================
 # KPI CALCULATIONS
-# =========================================================
 
 total_feedback = len(filtered_df)
 average_rating = filtered_df["rating"].mean()
@@ -584,10 +559,7 @@ negative_sentiment_pct = (filtered_df["sentiment"] == "Negative").mean() * 100
 
 avg_message_length = filtered_df["message_length"].mean()
 
-
-# =========================================================
 # KPI CARDS — always visible, above the tabs
-# =========================================================
 
 st.markdown('<div class="section-title">Overview</div>', unsafe_allow_html=True)
 
@@ -676,9 +648,7 @@ with col8:
     )
 
 
-# =========================================================
 # DERIVED TABLES USED BY MULTIPLE CHARTS
-# =========================================================
 
 rating_counts = filtered_df["rating"].value_counts().sort_index().reset_index()
 rating_counts.columns = ["Rating", "Count"]
@@ -695,19 +665,9 @@ nps_counts = filtered_df["nps_segment"].value_counts().reset_index()
 nps_counts.columns = ["Segment", "Count"]
 
 
-# =========================================================
-# TABS — each tab is self-contained, so nothing overlaps and
-# the page never turns into one giant scroll.
-# =========================================================
-
 tab_dist, tab_trends, tab_categories, tab_feedback = st.tabs(
     ["📊  Distribution", "📈  Trends", "🗂️  Categories", "💬  Feedback Explorer"]
 )
-
-
-# ---------------------------------------------------------
-# TAB: DISTRIBUTION
-# ---------------------------------------------------------
 
 with tab_dist:
     chart_col1, chart_col2 = st.columns(2)
@@ -761,9 +721,6 @@ with tab_dist:
         st.plotly_chart(fig_nps, use_container_width=True)
 
 
-# ---------------------------------------------------------
-# TAB: TRENDS
-# ---------------------------------------------------------
 
 with tab_trends:
     daily_feedback = filtered_df.groupby("date").size().reset_index(name="Feedback Count")
@@ -818,10 +775,6 @@ with tab_trends:
     )
     st.plotly_chart(fig_heatmap, use_container_width=True)
 
-
-# ---------------------------------------------------------
-# TAB: CATEGORIES
-# ---------------------------------------------------------
 
 with tab_categories:
     chart_col3, chart_col4 = st.columns(2)
@@ -889,9 +842,6 @@ with tab_categories:
         st.plotly_chart(fig_length, use_container_width=True)
 
 
-# ---------------------------------------------------------
-# TAB: FEEDBACK EXPLORER
-# ---------------------------------------------------------
 
 with tab_feedback:
     display_df = filtered_df[
@@ -924,10 +874,6 @@ with tab_feedback:
         mime="text/csv",
     )
 
-
-# =========================================================
-# FOOTER
-# =========================================================
 
 st.markdown("---")
 st.caption(
