@@ -7,11 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import json
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-
-
-# =========================================================
 # PAGE CONFIGURATION
-# =========================================================
 
 st.set_page_config(
     page_title="ASL Meet Analytics",
@@ -21,10 +17,7 @@ st.set_page_config(
 )
 
 
-# =========================================================
 # COLOR PALETTE
-# =========================================================
-
 NAVY = "#0F1F3A"
 DARK_TEAL = "#2C4A52"
 TEAL = "#527277"
@@ -60,19 +53,12 @@ NPS_COLORS = {
 }
 
 
-# =========================================================
-# APP PASSWORD GATE
-# The password itself is never stored in the source — only its
 # SHA-256 hash is. To set/change the password, run once:
 #   python3 -c "import hashlib; print(hashlib.sha256(b'yourpassword').hexdigest())"
 # and paste the result into APP_PASSWORD_HASH below.
-# For a public deploy, move the hash into st.secrets["app_password_hash"]
-# instead of hardcoding it here.
-# =========================================================
 
 import hashlib
 
-# hash of: a#12355@projectAAAJ
 APP_PASSWORD_HASH = "80da1e121150a9c60bbbd284903abd095797c3079a0a26e92d1536c8e815285c"
 
 
@@ -117,10 +103,6 @@ def check_password() -> bool:
     return False
 
 
-# =========================================================
-# CUSTOM CSS  (applied before the password gate too, so the
-# gate itself is styled consistently with the rest of the app)
-# =========================================================
 
 st.markdown(
     f"""
@@ -229,7 +211,7 @@ st.markdown(
     }}
 
     [data-testid="stFileUploader"] {{
-        background-color: {WHITE};
+        background-color: {NAVY};
         border-radius: 12px;
         padding: 4px;
     }}
@@ -310,18 +292,13 @@ st.markdown(
 if not check_password():
     st.stop()
 
-
-# =========================================================
 # HEADER
-# =========================================================
+
 
 st.markdown('<div class="main-title">ASL Meet Assistant</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">User Feedback & Analytics Dashboard</div>', unsafe_allow_html=True)
 
-
-# =========================================================
 # FILE UPLOAD
-# =========================================================
 
 st.sidebar.markdown('<div class="sidebar-heading">Data Source</div>', unsafe_allow_html=True)
 
